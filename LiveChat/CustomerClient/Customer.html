@@ -36,19 +36,13 @@
         .input-bar { padding: 12px; background: white; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; }
         .input-bar input { flex: 1; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; }
         .input-bar button { padding: 0 18px; background: #0d9488; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-
-        /* Thanh Giả Lập Server */
-        .mock-bar { background: #1e293b; color: #cbd5e1; padding: 8px 12px; font-size: 11px; border-top: 2px solid #f59e0b; display: flex; flex-direction: column; gap: 6px; }
-        .mock-btns { display: flex; gap: 6px; flex-wrap: wrap; }
-        .mock-btns button { background: #334155; color: white; border: 1px solid #475569; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
-        .mock-btns button:hover { background: #475569; }
     </style>
 </head>
 <body>
 
     <header>
         <div><strong>💬 Hỗ Trợ Trực Tuyến</strong></div>
-        <span id="connStatus" class="status-dot">Chế độ Test UI</span>
+        <span id="connStatus" class="status-dot">Đang kết nối...</span>
     </header>
 
     <!-- Màn hình 1: Nhập thông tin yêu cầu hỗ trợ -->
@@ -81,16 +75,6 @@
         </div>
     </div>
 
-    <!-- Thanh Giả Lập Server -->
-    <div class="mock-bar">
-        <div>🛠️ <strong>GIẢ LẬP SERVER (TEST UI):</strong></div>
-        <div class="mock-btns">
-            <button onclick="mockServerAssign()">1. Giả lập Ghép nối Agent (SESSION_ASSIGNED)</button>
-            <button onclick="mockAgentReply()">2. Giả lập Agent nhắn tin (CHAT_MSG)</button>
-            <button onclick="mockServerEnd()">3. Giả lập Đóng phiên (END_SESSION)</button>
-        </div>
-    </div>
-
     <script>
         let customerId = "";
         let customerName = "";
@@ -99,7 +83,6 @@
 
         function sendPacketToCSharp(packetObj) {
             const json = JSON.stringify(packetObj);
-            console.log("[Customer UI -> C# TCP]:", json);
             if (window.chrome && window.chrome.webview) {
                 window.chrome.webview.postMessage(json);
             }
@@ -128,10 +111,8 @@
         }
 
         function handleIncomingPacket(packet) {
-            console.log("[C# TCP -> Customer UI]:", packet);
-
             if (packet.Type === "SYSTEM_CONN_STATUS") {
-                document.getElementById("connStatus").textContent = packet.Connected ? "Đã kết nối Server" : "Offline (Test UI)";
+                document.getElementById("connStatus").textContent = packet.Connected ? "Đã kết nối Server" : "Mất kết nối";
                 return;
             }
 
@@ -194,37 +175,6 @@
             div.textContent = text;
             list.appendChild(div);
             list.scrollTop = list.scrollHeight;
-        }
-
-        // HÀM GIẢ LẬP SERVER
-        function mockServerAssign() {
-            document.getElementById("startScreen").style.display = "none";
-            document.getElementById("chatScreen").style.display = "flex";
-            handleIncomingPacket({
-                Type: "SESSION_ASSIGNED",
-                Session_ID: "SESS_999",
-                Agent_ID: "AGENT_01",
-                Customer_ID: customerId || "CUST_01",
-                Customer_Name: customerName || "Nguyễn Văn A"
-            });
-        }
-
-        function mockAgentReply() {
-            if (!sessionId) {
-                alert("Hãy bấm '1. Giả lập Ghép nối Agent' trước!");
-                return;
-            }
-            handleIncomingPacket({
-                Type: "CHAT_MSG",
-                Session_ID: sessionId,
-                Agent_ID: assignedAgentId,
-                Sender: assignedAgentId,
-                Content: "Chào anh/chị! Em là tư vấn viên hỗ trợ mình hôm nay. Em có thể giúp gì cho mình ạ?"
-            });
-        }
-
-        function mockServerEnd() {
-            handleIncomingPacket({ Type: "END_SESSION" });
         }
     </script>
 </body>
