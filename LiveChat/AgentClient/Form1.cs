@@ -12,7 +12,7 @@ namespace AgentClient
         private NetworkStream? _stream;
 
         private const string SERVER_IP = "127.0.0.1";
-        private const int SERVER_PORT = 9000;
+        private const int SERVER_PORT = 5050;
 
         public Form1()
         {

@@ -1,7 +1,9 @@
-﻿using System.Net;
-using System.Net.Sockets;
+﻿using System;
 using System.Collections.Concurrent;
-using System.Text;
+using System.Net;
+using System.Net.Sockets;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Shared;
 
 namespace Server
@@ -10,11 +12,14 @@ namespace Server
     {
         private static readonly ConcurrentDictionary<string, NetworkStream> _agents = new();
         private static readonly ConcurrentDictionary<string, NetworkStream> _clients = new();
+        private static int _lastAgentIndex = -1;
 
         public static async Task Main()
         {
-            var listener = new TcpListener(IPAddress.Any, 5000);
+            var listener = new TcpListener(IPAddress.Any, 5050);
             listener.Start();
+            Console.WriteLine("[SERVER STARTED] Listening on port 5050...");
+
             while (true)
             {
                 var tcpClient = await listener.AcceptTcpClientAsync();
@@ -24,59 +29,58 @@ namespace Server
 
         private static async Task HandleClientAsync(TcpClient tcpClient)
         {
+            var stream = tcpClient.GetStream();
             string? registeredId = null;
             bool isAgent = false;
-            var stream = tcpClient.GetStream();
-            var reader = new StreamReader(stream, Encoding.UTF8);
+
             try
             {
                 while (true)
                 {
-                    var line = await reader.ReadLineAsync();
-                    if (line == null) break;
-                    var packet = Packet.Deserialize(line);
+                    var jsonStr = await Packet.ReceiveJsonAsync(stream);
+                    if (string.IsNullOrEmpty(jsonStr)) break;
+
+                    var packet = JsonSerializer.Deserialize<Packet>(jsonStr);
                     if (packet == null) continue;
+
                     switch (packet.Type)
                     {
-                        case MessageType.AgentReady:
-                            registeredId = packet.SenderId;
+                        case "AGENT_LOGIN":
+                            registeredId = packet.Agent_ID;
                             isAgent = true;
-                            _agents[registeredId] = stream;
-                            Console.WriteLine($"[AGENT ONLINE] Agent {packet.SenderId} ready.");
-                            break;
-                        case MessageType.ClientInit:
-                            registeredId = packet.SenderId;
-                            isAgent = false;
-                            _clients[registeredId] = stream;
-                            Console.WriteLine($"[CLIENT YEU CAU] Client {packet.SenderId} requested chat.");
-                            foreach (var agent in _agents)
+                            if (registeredId != null)
                             {
-                                var sessionId = "S_" + Guid.NewGuid().ToString("N")[..8];
-                                var sessionPacket = new Packet
-                                {
-                                    Type = MessageType.SessionAssigned,
-                                    SessionId = sessionId,
-                                    SenderId = agent.Key,
-                                    ReceiverId = registeredId
-                                };
-                                await SendPacket(agent.Value, sessionPacket);
-                                await SendPacket(stream, sessionPacket);
-                                Console.WriteLine($"[ROUTING] Client {registeredId} <-> Agent {agent.Key} (Session: {sessionId})");
-                                break;
+                                _agents[registeredId] = stream;
+                                Console.WriteLine($"[AGENT ONLINE] Agent {registeredId} ready.");
                             }
                             break;
-                        case MessageType.ChatMessage:
-                            Console.WriteLine($"[CHAT] {packet.SenderId} -> {packet.ReceiverId}: {packet.Content}");
-                            if (_agents.TryGetValue(packet.ReceiverId, out var agentStream))
-                                await SendPacket(agentStream, packet);
-                            else if (_clients.TryGetValue(packet.ReceiverId, out var clientStream))
-                                await SendPacket(clientStream, packet);
+
+                        case "CUSTOMER_REQ":
+                            registeredId = packet.Customer_ID;
+                            isAgent = false;
+                            if (registeredId != null)
+                            {
+                                _clients[registeredId] = stream;
+                                Console.WriteLine($"[CLIENT YEU CAU] Khách {registeredId} ({packet.Customer_Name}) requested chat.");
+                                await AssignAgentToClient(registeredId, packet.Customer_Name, stream);
+                            }
+                            break;
+
+                        case "CHAT_MSG":
+                            Console.WriteLine($"[CHAT] {packet.Sender}: {packet.Content}");
+                            await ForwardMessage(packet, jsonStr);
+                            break;
+
+                        case "END_SESSION":
+                            Console.WriteLine($"[KET THUC] Session {packet.Session_ID} closed by {packet.Sender}.");
+                            await ForwardMessage(packet, jsonStr);
                             break;
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[LOI] {registeredId}: {ex.Message}");
             }
             finally
             {
@@ -87,16 +91,61 @@ namespace Server
                     else
                         _clients.TryRemove(registeredId, out _);
                 }
+
                 stream.Close();
                 tcpClient.Close();
+                Console.WriteLine($"[NGAT KET NOI] {registeredId ?? "Unknown"} disconnected.");
             }
         }
 
-        private static async Task SendPacket(NetworkStream stream, Packet packet)
+        private static async Task AssignAgentToClient(string customerId, string? customerName, NetworkStream clientStream)
         {
-            var data = Encoding.UTF8.GetBytes(packet.Serialize() + "\n");
-            await stream.WriteAsync(data, 0, data.Length);
-            await stream.FlushAsync();
+            if (_agents.IsEmpty)
+            {
+                Console.WriteLine($"[WARNING] Khách {customerId} đang chờ nhưng không có Agent nào online!");
+                return;
+            }
+
+            var agentList = _agents.ToArray();
+            _lastAgentIndex = (_lastAgentIndex + 1) % agentList.Length;
+
+            var selectedAgent = agentList[_lastAgentIndex];
+            var sessionId = "S_" + Guid.NewGuid().ToString("N")[..8];
+
+            var sessionPacket = new Packet
+            {
+                Type = "SESSION_ASSIGNED",
+                Session_ID = sessionId,
+                Agent_ID = selectedAgent.Key,
+                Customer_ID = customerId,
+                Customer_Name = customerName
+            };
+
+            string jsonStr = JsonSerializer.Serialize(sessionPacket);
+
+            await Packet.SendJsonAsync(selectedAgent.Value, jsonStr);
+            await Packet.SendJsonAsync(clientStream, jsonStr);
+
+            Console.WriteLine($"[ROUTING] {customerId} <-> {selectedAgent.Key} (Session: {sessionId})");
+        }
+
+        private static async Task ForwardMessage(Packet packet, string rawJson)
+        {
+            if (!string.IsNullOrEmpty(packet.Customer_ID) && _clients.TryGetValue(packet.Customer_ID, out var clientStream))
+            {
+                if (packet.Sender != packet.Customer_ID)
+                {
+                    await Packet.SendJsonAsync(clientStream, rawJson);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(packet.Agent_ID) && _agents.TryGetValue(packet.Agent_ID, out var agentStream))
+            {
+                if (packet.Sender != packet.Agent_ID)
+                {
+                    await Packet.SendJsonAsync(agentStream, rawJson);
+                }
+            }
         }
     }
 }
