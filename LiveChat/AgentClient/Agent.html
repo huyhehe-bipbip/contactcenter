@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Agent Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { display: flex; flex-direction: column; height: 100vh; background: #f3f4f6; color: #1f2937; overflow: hidden; }
+        
+        /* Header */
+        header { background: #1e293b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .status-badge { font-size: 12px; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+        .status-online { background: #10b981; color: white; }
+        .status-offline { background: #ef4444; color: white; }
+        .login-bar { display: flex; gap: 8px; align-items: center; }
+        .login-bar input { padding: 6px 10px; border-radius: 6px; border: 1px solid #475569; background: #334155; color: white; outline: none; }
+        .btn { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.15s; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+
+        /* Main Workspace */
+        .workspace { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Sidebar danh sách phiên chat */
+        .sidebar { width: 290px; background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; }
+        .sidebar-title { padding: 14px 16px; font-weight: 700; font-size: 14px; color: #4b5563; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+        .session-list { flex: 1; overflow-y: auto; }
+        .session-item { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: 0.15s; }
+        .session-item:hover { background: #f9fafb; }
+        .session-item.active { background: #eff6ff; border-left: 4px solid #3b82f6; }
+        .session-item .cust-name { font-weight: 600; font-size: 14px; color: #111827; display: flex; justify-content: space-between; }
+        .session-item .sess-meta { font-size: 12px; color: #6b7280; margin-top: 4px; }
+
+        /* Khung Chat chính */
+        .chat-panel { flex: 1; display: flex; flex-direction: column; background: #f8fafc; }
+        .chat-header { padding: 14px 20px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 68%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
+        .msg-agent { align-self: flex-end; background: #2563eb; color: white; border-bottom-right-radius: 2px; }
+        .msg-customer { align-self: flex-start; background: white; color: #1f2937; border: 1px solid #e5e7eb; border-bottom-left-radius: 2px; }
+        .msg-system { align-self: center; background: #e2e8f0; color: #475569; font-size: 12px; padding: 4px 12px; border-radius: 999px; }
+        .msg-sender { font-size: 11px; opacity: 0.75; margin-bottom: 3px; font-weight: 600; }
+
+        .chat-input { padding: 14px 20px; background: white; border-top: 1px solid #e5e7eb; display: flex; gap: 10px; }
+        .chat-input input { flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; font-size: 14px; }
+        .chat-input input:focus { border-color: #3b82f6; }
+
+        /* Thanh công cụ Giả lập Server (Dành cho test không cần Server) */
+        .mock-toolbar { background: #111827; color: #9ca3af; padding: 8px 16px; font-size: 12px; display: flex; align-items: center; justify-content: space-between; border-top: 2px solid #f59e0b; }
+        .mock-actions { display: flex; gap: 8px; }
+        .btn-mock { background: #374151; color: #f3f4f6; border: 1px solid #4b5563; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-mock:hover { background: #4b5563; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <span>🎧 Agent Dashboard</span>
+            <span id="connBadge" class="status-badge status-offline">Offline (Chế độ Test)</span>
+        </div>
+        <div class="login-bar">
+            <input type="text" id="agentIdInput" value="AGENT_01" placeholder="Nhập Agent ID..." />
+            <button class="btn btn-primary" onclick="loginAgent()">Đăng nhập Ca trực</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <!-- Danh sách phiên chat -->
+        <div class="sidebar">
+            <div class="sidebar-title">PHIÊN CHAT ĐANG HỖ TRỢ (<span id="sessionCount">0</span>)</div>
+            <div class="session-list" id="sessionList"></div>
+        </div>
+
+        <!-- Khu vực hội thoại -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <div>
+                    <strong id="activeCustName">Chưa chọn phiên chat</strong>
+                    <div id="activeSessId" style="font-size: 12px; color: #6b7280;">Hãy chọn hoặc giả lập một khách hàng bên dưới</div>
+                </div>
+                <button class="btn btn-danger" id="endBtn" style="display:none;" onclick="endCurrentSession()">Kết thúc phiên</button>
+            </div>
+
+            <div class="chat-messages" id="chatBox"></div>
+
+            <div class="chat-input">
+                <input type="text" id="msgInput" placeholder="Nhập tin nhắn trả lời khách hàng..." disabled onkeydown="if(event.key==='Enter') sendChatMessage()" />
+                <button class="btn btn-primary" id="sendBtn" disabled onclick="sendChatMessage()">Gửi tin nhắn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thanh Giả Lập Server để tự Test khi chưa có Server thật -->
+    <div class="mock-toolbar">
+        <div>🛠️ <strong>GIẢ LẬP SERVER (TEST UI):</strong> Tự tạo gói tin từ Server bắn về mà không cần bật Server C#</div>
+        <div class="mock-actions">
+            <button class="btn-mock" onclick="mockAssignSession()">+ Giả lập Khách mới vào (SESSION_ASSIGNED)</button>
+            <button class="btn-mock" onclick="mockCustomerMessage()">💬 Giả lập Khách nhắn tin (CHAT_MSG)</button>
+            <button class="btn-mock" onclick="mockCustomerEnd()">❌ Giả lập Khách thoát (END_SESSION)</button>
+        </div>
+    </div>
+
+    <script>
+        let currentAgentId = "AGENT_01";
+        let activeSessionId = null;
+        // Lưu trữ danh sách phiên chat: { [sessionId]: { customerId, customerName, messages: [], ended: false } }
+        const sessions = {};
+
+        // 1. Gửi gói tin JSON xuống C# Form1.cs (hoặc log ra nếu chạy trên trình duyệt)
+        function sendPacketToCSharp(packetObj) {
+            const jsonString = JSON.stringify(packetObj);
+            console.log("[UI -> C# TCP]:", jsonString);
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage(jsonString);
+            }
+        }
+
+        // 2. Nhận gói tin JSON từ C# Form1.cs bắn lên
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                const packet = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                handleIncomingPacket(packet);
+            });
+        }
+
+        // 3. Xử lý các loại gói tin theo chuẩn Packet.cs
+        function handleIncomingPacket(packet) {
+            console.log("[C# TCP -> UI]:", packet);
+
+            if (packet.Type === "SYSTEM_CONN_STATUS") {
+                const badge = document.getElementById("connBadge");
+                if (packet.Connected) {
+                    badge.textContent = "Đã kết nối Server TCP";
+                    badge.className = "status-badge status-online";
+                } else {
+                    badge.textContent = "Offline (Chế độ Test)";
+                    badge.className = "status-badge status-offline";
+                }
+                return;
+            }
+
+            if (packet.Type === "SESSION_ASSIGNED") {
+                const sid = packet.Session_ID;
+                sessions[sid] = {
+                    customerId: packet.Customer_ID,
+                    customerName: packet.Customer_Name || "Khách hàng",
+                    messages: [{ sender: "SYSTEM", content: `Đã kết nối với khách hàng ${packet.Customer_Name} (${packet.Customer_ID})` }],
+                    ended: false
+                };
+                renderSessionList();
+                selectSession(sid);
+            }
+            else if (packet.Type === "CHAT_MSG") {
+                const sid = packet.Session_ID;
+                if (!sessions[sid]) return;
+                sessions[sid].messages.push({
+                    sender: packet.Sender,
+                    content: packet.Content
+                });
+                if (activeSessionId === sid) renderMessages();
+            }
+            else if (packet.Type === "END_SESSION") {
+                const sid = packet.Session_ID;
+                if (!sessions[sid]) return;
+                sessions[sid].ended = true;
+                sessions[sid].messages.push({
+                    sender: "SYSTEM",
+                    content: "Phiên trò chuyện đã kết thúc."
+                });
+                renderSessionList();
+                if (activeSessionId === sid) renderMessages();
+            }
+        }
+
+        // 4. Các thao tác của Agent
+        function loginAgent() {
+            currentAgentId = document.getElementById("agentIdInput").value.trim() || "AGENT_01";
+            sendPacketToCSharp({
+                Type: "AGENT_LOGIN",
+                Agent_ID: currentAgentId
+            });
+            alert(`Đã gửi gói tin AGENT_LOGIN với mã: ${currentAgentId}`);
+        }
+
+        function sendChatMessage() {
+            if (!activeSessionId || sessions[activeSessionId].ended) return;
+            const input = document.getElementById("msgInput");
+            const text = input.value.trim();
+            if (!text) return;
+
+            const packet = {
+                Type: "CHAT_MSG",
+                Session_ID: activeSessionId,
+                Agent_ID: currentAgentId,
+                Customer_ID: sessions[activeSessionId].customerId,
+                Sender: currentAgentId,
+                Content: text
+            };
+
+            // Hiển thị ngay trên UI của Agent
+            sessions[activeSessionId].messages.push({ sender: currentAgentId, content: text });
+            input.value = "";
+            renderMessages();
+
+            // Gửi xuống C#
+            sendPacketToCSharp(packet);
+        }
+
+        function endCurrentSession() {
+            if (!activeSessionId || sessions[activeSessionId].ended) return;
+            sendPacketToCSharp({
+                Type: "END_SESSION",
+                Session_ID: activeSessionId,
+                Agent_ID: currentAgentId,
+                Customer_ID: sessions[activeSessionId].customerId,
+                Sender: currentAgentId
+            });
+            handleIncomingPacket({ Type: "END_SESSION", Session_ID: activeSessionId });
+        }
+
+        // 5. Render UI
+        function renderSessionList() {
+            const listEl = document.getElementById("sessionList");
+            listEl.innerHTML = "";
+            const keys = Object.keys(sessions);
+            document.getElementById("sessionCount").textContent = keys.length;
+
+            keys.forEach(sid => {
+                const s = sessions[sid];
+                const div = document.createElement("div");
+                div.className = `session-item ${sid === activeSessionId ? 'active' : ''}`;
+                div.onclick = () => selectSession(sid);
+                div.innerHTML = `
+                    <div class="cust-name">
+                        <span>👤 ${s.customerName}</span>
+                        <span style="font-size:11px; color:${s.ended ? '#ef4444' : '#10b981'}">${s.ended ? 'Đã đóng' : 'Đang chat'}</span>
+                    </div>
+                    <div class="sess-meta">Phiên: ${sid} | ID: ${s.customerId}</div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function selectSession(sid) {
+            activeSessionId = sid;
+            renderSessionList();
+            renderMessages();
+        }
+
+        function renderMessages() {
+            const box = document.getElementById("chatBox");
+            box.innerHTML = "";
+            if (!activeSessionId || !sessions[activeSessionId]) return;
+
+            const s = sessions[activeSessionId];
+            document.getElementById("activeCustName").textContent = `${s.customerName} (${s.customerId})`;
+            document.getElementById("activeSessId").textContent = `Mã phiên: ${activeSessionId}`;
+            document.getElementById("endBtn").style.display = s.ended ? "none" : "inline-block";
+            document.getElementById("msgInput").disabled = s.ended;
+            document.getElementById("sendBtn").disabled = s.ended;
+
+            s.messages.forEach(m => {
+                const div = document.createElement("div");
+                if (m.sender === "SYSTEM") {
+                    div.className = "msg msg-system";
+                    div.textContent = m.content;
+                } else if (m.sender === currentAgentId) {
+                    div.className = "msg msg-agent";
+                    div.innerHTML = `<div class="msg-sender">Bạn (${m.sender})</div><div>${m.content}</div>`;
+                } else {
+                    div.className = "msg msg-customer";
+                    div.innerHTML = `<div class="msg-sender">${s.customerName}</div><div>${m.content}</div>`;
+                }
+                box.appendChild(div);
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // 6. CÁC HÀM GIẢ LẬP SERVER (Dùng để test khi chưa có Server thật)
+        let mockCounter = 1;
+        function mockAssignSession() {
+            const sid = "SESS_00" + mockCounter;
+            const cid = "CUST_0" + mockCounter;
+            const names = ["Nguyễn Văn A", "Trần Thị B", "Lê Hoàng C", "Phạm Minh D"];
+            const cname = names[(mockCounter - 1) % names.length];
+            mockCounter++;
+
+            handleIncomingPacket({
+                Type: "SESSION_ASSIGNED",
+                Session_ID: sid,
+                Agent_ID: currentAgentId,
+                Customer_ID: cid,
+                Customer_Name: cname
+            });
+        }
+
+        function mockCustomerMessage() {
+            if (!activeSessionId) {
+                alert("Hãy bấm '+ Giả lập Khách mới vào' trước!");
+                return;
+            }
+            const sampleMsgs = [
+                "Chào tổng đài, mình cần kiểm tra đơn hàng #DH9921 ạ.",
+                "Cho mình hỏi gói cước internet bên mình đang có khuyến mãi gì?",
+                "Mình thanh toán rồi nhưng hệ thống vẫn báo chờ xử lý!"
+            ];
+            const randomMsg = sampleMsgs[Math.floor(Math.random() * sampleMsgs.length)];
+            handleIncomingPacket({
+                Type: "CHAT_MSG",
+                Session_ID: activeSessionId,
+                Customer_ID: sessions[activeSessionId].customerId,
+                Sender: sessions[activeSessionId].customerId,
+                Content: randomMsg
+            });
+        }
+
+        function mockCustomerEnd() {
+            if (!activeSessionId) return;
+            handleIncomingPacket({
+                Type: "END_SESSION",
+                Session_ID: activeSessionId
+            });
+        }
+    </script>
+</body>
+</html>
