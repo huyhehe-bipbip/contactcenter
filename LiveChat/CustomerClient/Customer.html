@@ -4,38 +4,223 @@
     <meta charset="UTF-8">
     <title>Customer Live Chat</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { display: flex; flex-direction: column; height: 100vh; background: #f8fafc; color: #1e293b; overflow: hidden; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-        header { background: #0f766e; color: white; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
-        .status-dot { font-size: 11px; padding: 3px 8px; border-radius: 12px; background: rgba(255,255,255,0.2); }
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #f8fafc;
+            color: #1e293b;
+            overflow: hidden;
+        }
 
-        /* Màn hình đăng ký thông tin */
-        .view-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 28px; }
-        .card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
-        .card h2 { font-size: 18px; margin-bottom: 8px; color: #0f766e; }
-        .card p { font-size: 13px; color: #64748b; margin-bottom: 18px; }
-        .form-group { margin-bottom: 14px; }
-        .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #475569; }
-        .form-group input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-        .btn { width: 100%; padding: 11px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
-        .btn-teal { background: #0d9488; color: white; }
-        .btn-teal:hover { background: #0f766e; }
+        header {
+            background: #0f766e;
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        /* Màn hình Chat */
-        #chatScreen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-        .agent-banner { background: #f0fdf4; border-bottom: 1px solid #bbf7d0; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #166534; }
-        .btn-end { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-        
-        .messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 78%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
-        .msg-me { align-self: flex-end; background: #0d9488; color: white; border-bottom-right-radius: 2px; }
-        .msg-agent { align-self: flex-start; background: white; border: 1px solid #e2e8f0; border-bottom-left-radius: 2px; }
-        .msg-sys { align-self: center; font-size: 12px; background: #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 999px; }
+        .status-dot {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+        }
 
-        .input-bar { padding: 12px; background: white; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; }
-        .input-bar input { flex: 1; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; }
-        .input-bar button { padding: 0 18px; background: #0d9488; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .view-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 28px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+            .card h2 {
+                font-size: 18px;
+                margin-bottom: 8px;
+                color: #0f766e;
+            }
+
+            .card p {
+                font-size: 13px;
+                color: #64748b;
+                margin-bottom: 18px;
+            }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 6px;
+                color: #475569;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                font-size: 14px;
+                outline: none;
+            }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-teal {
+            background: #0d9488;
+            color: white;
+        }
+
+            .btn-teal:hover {
+                background: #0f766e;
+            }
+
+        #chatScreen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .agent-banner {
+            background: #f0fdf4;
+            border-bottom: 1px solid #bbf7d0;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #166534;
+        }
+
+        .btn-end {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            max-width: 78%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .msg-me {
+            align-self: flex-end;
+            background: #0d9488;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg-agent {
+            align-self: flex-start;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 2px;
+        }
+
+        .msg-sys {
+            align-self: center;
+            font-size: 12px;
+            background: #e2e8f0;
+            color: #475569;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
+        .msg img {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .input-bar {
+            padding: 12px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+            .input-bar input[type="text"] {
+                flex: 1;
+                padding: 10px 12px;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                outline: none;
+            }
+
+        .btn-icon {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            .btn-icon:hover {
+                background: #e2e8f0;
+            }
+
+        .input-bar button:not(.btn-icon) {
+            padding: 0 18px;
+            height: 41px;
+            background: #0d9488;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -45,7 +230,6 @@
         <span id="connStatus" class="status-dot">Đang kết nối...</span>
     </header>
 
-    <!-- Màn hình 1: Nhập thông tin yêu cầu hỗ trợ -->
     <div id="startScreen" class="view-panel">
         <div class="card">
             <h2>Xin chào quý khách!</h2>
@@ -62,7 +246,6 @@
         </div>
     </div>
 
-    <!-- Màn hình 2: Khung Chat -->
     <div id="chatScreen">
         <div class="agent-banner">
             <span id="agentStatusText">⏳ Đang tìm tổng đài viên...</span>
@@ -70,6 +253,8 @@
         </div>
         <div class="messages" id="msgList"></div>
         <div class="input-bar">
+            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(this)" />
+            <button class="btn-icon" onclick="document.getElementById('imageInput').click()" title="Gửi hình ảnh">📷</button>
             <input type="text" id="chatInput" placeholder="Nhập câu hỏi của bạn..." disabled onkeydown="if(event.key==='Enter') sendMessage()" />
             <button id="sendBtn" disabled onclick="sendMessage()">Gửi</button>
         </div>
@@ -101,7 +286,7 @@
 
             document.getElementById("startScreen").style.display = "none";
             document.getElementById("chatScreen").style.display = "flex";
-            addMessage("SYS", "Đã gửi yêu cầu hỗ trợ. Đang chờ nhân viên tiếp nhận...");
+            addMessage("SYS", "Đã gửi yêu cầu hỗ trợ. Đang chờ nhân viên tiếp nhận...", null);
 
             sendPacketToCSharp({
                 Type: "CUSTOMER_REQ",
@@ -122,16 +307,16 @@
                 document.getElementById("agentStatusText").textContent = `🟢 Đang trò chuyện với Tư vấn viên (${assignedAgentId})`;
                 document.getElementById("chatInput").disabled = false;
                 document.getElementById("sendBtn").disabled = false;
-                addMessage("SYS", `Tư vấn viên ${assignedAgentId} đã tham gia phiên hỗ trợ (${sessionId}).`);
+                addMessage("SYS", `Tư vấn viên ${assignedAgentId} đã tham gia phiên hỗ trợ (${sessionId}).`, null);
             }
             else if (packet.Type === "CHAT_MSG") {
-                addMessage("AGENT", packet.Content);
+                addMessage("AGENT", packet.Content, packet.Attachment);
             }
             else if (packet.Type === "END_SESSION") {
                 document.getElementById("agentStatusText").textContent = "🔴 Phiên hỗ trợ đã kết thúc";
                 document.getElementById("chatInput").disabled = true;
                 document.getElementById("sendBtn").disabled = true;
-                addMessage("SYS", "Phiên trò chuyện đã kết thúc. Cảm ơn quý khách!");
+                addMessage("SYS", "Phiên trò chuyện đã kết thúc. Cảm ơn quý khách!", null);
             }
         }
 
@@ -140,7 +325,7 @@
             const text = input.value.trim();
             if (!text || !sessionId) return;
 
-            addMessage("ME", text);
+            addMessage("ME", text, null);
             input.value = "";
 
             sendPacketToCSharp({
@@ -149,8 +334,32 @@
                 Agent_ID: assignedAgentId,
                 Customer_ID: customerId,
                 Sender: customerId,
-                Content: text
+                Content: text,
+                Attachment: null
             });
+        }
+
+        function sendImage(input) {
+            if (input.files && input.files[0] && sessionId) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64Data = e.target.result;
+
+                    addMessage("ME", "[Hình ảnh]", base64Data);
+
+                    sendPacketToCSharp({
+                        Type: "CHAT_MSG",
+                        Session_ID: sessionId,
+                        Agent_ID: assignedAgentId,
+                        Customer_ID: customerId,
+                        Sender: customerId,
+                        Content: "[Hình ảnh]",
+                        Attachment: base64Data
+                    });
+                };
+                reader.readAsDataURL(input.files[0]);
+                input.value = ""; // Reset file input
+            }
         }
 
         function endSession() {
@@ -166,15 +375,32 @@
             handleIncomingPacket({ Type: "END_SESSION" });
         }
 
-        function addMessage(role, text) {
+        function addMessage(role, text, attachment) {
             const list = document.getElementById("msgList");
             const div = document.createElement("div");
+
             if (role === "SYS") div.className = "msg msg-sys";
             else if (role === "ME") div.className = "msg msg-me";
             else div.className = "msg msg-agent";
-            div.textContent = text;
+
+            let htmlContent = "";
+            if (text && text !== "[Hình ảnh]") {
+                htmlContent += `<div>${escapeHtml(text)}</div>`;
+            }
+            if (attachment) {
+                htmlContent += `<img src="${attachment}" />`;
+            }
+            if (!htmlContent && text) {
+                htmlContent = `<div>${escapeHtml(text)}</div>`;
+            }
+
+            div.innerHTML = htmlContent;
             list.appendChild(div);
             list.scrollTop = list.scrollHeight;
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
     </script>
 </body>

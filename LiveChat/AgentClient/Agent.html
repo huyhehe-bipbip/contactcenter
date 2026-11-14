@@ -4,49 +4,273 @@
     <meta charset="UTF-8">
     <title>Agent Dashboard</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { display: flex; flex-direction: column; height: 100vh; background: #f3f4f6; color: #1f2937; overflow: hidden; }
-        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #f3f4f6;
+            color: #1f2937;
+            overflow: hidden;
+        }
+
         /* Header */
-        header { background: #1e293b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .brand { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .status-badge { font-size: 12px; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
-        .status-online { background: #10b981; color: white; }
-        .status-offline { background: #ef4444; color: white; }
-        .login-bar { display: flex; gap: 8px; align-items: center; }
-        .login-bar input { padding: 6px 10px; border-radius: 6px; border: 1px solid #475569; background: #334155; color: white; outline: none; }
-        .btn { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.15s; }
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-danger:hover { background: #dc2626; }
+        header {
+            background: #1e293b;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-offline {
+            background: #ef4444;
+            color: white;
+        }
+
+        .login-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+            .login-bar input {
+                padding: 6px 10px;
+                border-radius: 6px;
+                border: 1px solid #475569;
+                background: #334155;
+                color: white;
+                outline: none;
+            }
+
+        .btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.15s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #2563eb;
+            }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+            .btn-danger:hover {
+                background: #dc2626;
+            }
 
         /* Main Workspace */
-        .workspace { display: flex; flex: 1; overflow: hidden; }
-        
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
         /* Sidebar danh sách phiên chat */
-        .sidebar { width: 290px; background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; }
-        .sidebar-title { padding: 14px 16px; font-weight: 700; font-size: 14px; color: #4b5563; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
-        .session-list { flex: 1; overflow-y: auto; }
-        .session-item { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: 0.15s; }
-        .session-item:hover { background: #f9fafb; }
-        .session-item.active { background: #eff6ff; border-left: 4px solid #3b82f6; }
-        .session-item .cust-name { font-weight: 600; font-size: 14px; color: #111827; display: flex; justify-content: space-between; }
-        .session-item .sess-meta { font-size: 12px; color: #6b7280; margin-top: 4px; }
+        .sidebar {
+            width: 290px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-title {
+            padding: 14px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .session-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .session-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+            .session-item:hover {
+                background: #f9fafb;
+            }
+
+            .session-item.active {
+                background: #eff6ff;
+                border-left: 4px solid #3b82f6;
+            }
+
+            .session-item .cust-name {
+                font-weight: 600;
+                font-size: 14px;
+                color: #111827;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .session-item .sess-meta {
+                font-size: 12px;
+                color: #6b7280;
+                margin-top: 4px;
+            }
 
         /* Khung Chat chính */
-        .chat-panel { flex: 1; display: flex; flex-direction: column; background: #f8fafc; }
-        .chat-header { padding: 14px 20px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 68%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
-        .msg-agent { align-self: flex-end; background: #2563eb; color: white; border-bottom-right-radius: 2px; }
-        .msg-customer { align-self: flex-start; background: white; color: #1f2937; border: 1px solid #e5e7eb; border-bottom-left-radius: 2px; }
-        .msg-system { align-self: center; background: #e2e8f0; color: #475569; font-size: 12px; padding: 4px 12px; border-radius: 999px; }
-        .msg-sender { font-size: 11px; opacity: 0.75; margin-bottom: 3px; font-weight: 600; }
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc;
+        }
 
-        .chat-input { padding: 14px 20px; background: white; border-top: 1px solid #e5e7eb; display: flex; gap: 10px; }
-        .chat-input input { flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; font-size: 14px; }
-        .chat-input input:focus { border-color: #3b82f6; }
+        .chat-header {
+            padding: 14px 20px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            max-width: 68%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .msg-agent {
+            align-self: flex-end;
+            background: #2563eb;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg-customer {
+            align-self: flex-start;
+            background: white;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 2px;
+        }
+
+        .msg-system {
+            align-self: center;
+            background: #e2e8f0;
+            color: #475569;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
+        .msg-sender {
+            font-size: 11px;
+            opacity: 0.75;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .msg img {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .chat-input {
+            padding: 14px 20px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+            .chat-input input[type="text"] {
+                flex: 1;
+                padding: 10px 14px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                outline: none;
+                font-size: 14px;
+            }
+
+                .chat-input input[type="text"]:focus {
+                    border-color: #3b82f6;
+                }
+
+        .btn-icon {
+            background: #f1f5f9;
+            border: 1px solid #d1d5db;
+            color: #4b5563;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            .btn-icon:hover {
+                background: #e5e7eb;
+            }
+
+        .chat-input button:not(.btn-icon) {
+            height: 41px;
+            padding: 0 18px;
+        }
     </style>
 </head>
 <body>
@@ -80,6 +304,8 @@
             <div class="chat-messages" id="chatBox"></div>
 
             <div class="chat-input">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(this)" />
+                <button class="btn-icon" onclick="document.getElementById('imageInput').click()" title="Gửi hình ảnh">📷</button>
                 <input type="text" id="msgInput" placeholder="Nhập tin nhắn trả lời khách hàng..." disabled onkeydown="if(event.key==='Enter') sendChatMessage()" />
                 <button class="btn btn-primary" id="sendBtn" disabled onclick="sendChatMessage()">Gửi tin nhắn</button>
             </div>
@@ -123,7 +349,7 @@
                 sessions[sid] = {
                     customerId: packet.Customer_ID,
                     customerName: packet.Customer_Name || "Khách hàng",
-                    messages: [{ sender: "SYSTEM", content: `Đã kết nối với khách hàng ${packet.Customer_Name} (${packet.Customer_ID})` }],
+                    messages: [{ sender: "SYSTEM", content: `Đã kết nối với khách hàng ${packet.Customer_Name} (${packet.Customer_ID})`, attachment: null }],
                     ended: false
                 };
                 renderSessionList();
@@ -134,7 +360,8 @@
                 if (!sessions[sid]) return;
                 sessions[sid].messages.push({
                     sender: packet.Sender,
-                    content: packet.Content
+                    content: packet.Content,
+                    attachment: packet.Attachment
                 });
                 if (activeSessionId === sid) renderMessages();
             }
@@ -144,7 +371,8 @@
                 sessions[sid].ended = true;
                 sessions[sid].messages.push({
                     sender: "SYSTEM",
-                    content: "Phiên trò chuyện đã kết thúc."
+                    content: "Phiên trò chuyện đã kết thúc.",
+                    attachment: null
                 });
                 renderSessionList();
                 if (activeSessionId === sid) renderMessages();
@@ -172,13 +400,42 @@
                 Agent_ID: currentAgentId,
                 Customer_ID: sessions[activeSessionId].customerId,
                 Sender: currentAgentId,
-                Content: text
+                Content: text,
+                Attachment: null
             };
 
-            sessions[activeSessionId].messages.push({ sender: currentAgentId, content: text });
+            sessions[activeSessionId].messages.push({ sender: currentAgentId, content: text, attachment: null });
             input.value = "";
             renderMessages();
             sendPacketToCSharp(packet);
+        }
+
+        function sendImage(input) {
+            if (input.files && input.files[0] && activeSessionId && !sessions[activeSessionId].ended) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64Data = e.target.result;
+
+                    sessions[activeSessionId].messages.push({
+                        sender: currentAgentId,
+                        content: "[Hình ảnh]",
+                        attachment: base64Data
+                    });
+                    renderMessages();
+
+                    sendPacketToCSharp({
+                        Type: "CHAT_MSG",
+                        Session_ID: activeSessionId,
+                        Agent_ID: currentAgentId,
+                        Customer_ID: sessions[activeSessionId].customerId,
+                        Sender: currentAgentId,
+                        Content: "[Hình ảnh]",
+                        Attachment: base64Data
+                    });
+                };
+                reader.readAsDataURL(input.files[0]);
+                input.value = "";
+            }
         }
 
         function endCurrentSession() {
@@ -205,12 +462,12 @@
                 div.className = `session-item ${sid === activeSessionId ? 'active' : ''}`;
                 div.onclick = () => selectSession(sid);
                 div.innerHTML = `
-                    <div class="cust-name">
-                        <span>👤 ${s.customerName}</span>
-                        <span style="font-size:11px; color:${s.ended ? '#ef4444' : '#10b981'}">${s.ended ? 'Đã đóng' : 'Đang chat'}</span>
-                    </div>
-                    <div class="sess-meta">Phiên: ${sid} | ID: ${s.customerId}</div>
-                `;
+                        <div class="cust-name">
+                            <span>👤 ${s.customerName}</span>
+                            <span style="font-size:11px; color:${s.ended ? '#ef4444' : '#10b981'}">${s.ended ? 'Đã đóng' : 'Đang chat'}</span>
+                        </div>
+                        <div class="sess-meta">Phiên: ${sid} | ID: ${s.customerId}</div>
+                    `;
                 listEl.appendChild(div);
             });
         }
@@ -238,16 +495,31 @@
                 if (m.sender === "SYSTEM") {
                     div.className = "msg msg-system";
                     div.textContent = m.content;
-                } else if (m.sender === currentAgentId) {
-                    div.className = "msg msg-agent";
-                    div.innerHTML = `<div class="msg-sender">Bạn (${m.sender})</div><div>${m.content}</div>`;
                 } else {
-                    div.className = "msg msg-customer";
-                    div.innerHTML = `<div class="msg-sender">${s.customerName}</div><div>${m.content}</div>`;
+                    let htmlContent = "";
+                    if (m.sender === currentAgentId) {
+                        div.className = "msg msg-agent";
+                        htmlContent += `<div class="msg-sender">Bạn (${m.sender})</div>`;
+                    } else {
+                        div.className = "msg msg-customer";
+                        htmlContent += `<div class="msg-sender">${s.customerName}</div>`;
+                    }
+
+                    if (m.content && m.content !== "[Hình ảnh]") {
+                        htmlContent += `<div>${escapeHtml(m.content)}</div>`;
+                    }
+                    if (m.attachment) {
+                        htmlContent += `<img src="${m.attachment}" />`;
+                    }
+                    div.innerHTML = htmlContent;
                 }
                 box.appendChild(div);
             });
             box.scrollTop = box.scrollHeight;
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
     </script>
 </body>

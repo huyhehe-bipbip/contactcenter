@@ -31,12 +31,10 @@ namespace AgentClient
 
             await _webView.EnsureCoreWebView2Async(null);
 
-            // Nhận gói tin JSON từ giao diện HTML 
             _webView.CoreWebView2.WebMessageReceived += async (sender, args) =>
             {
                 string jsonFromUi = args.TryGetWebMessageAsString();
 
-                // Nếu chưa kết nối Server thì thử kết nối lại trước khi gửi
                 if (_tcpClient == null || !_tcpClient.Connected)
                 {
                     await ConnectToServerAsync();
@@ -75,7 +73,6 @@ namespace AgentClient
                 this.Text = $"Agent Dashboard - Đã kết nối Server ({SERVER_IP}:{SERVER_PORT})";
                 SendServerStatusToUi(true);
 
-                // Chạy luồng ngầm nhận dữ liệu từ Server
                 _ = Task.Run(ReceiveLoopAsync);
             }
             catch
@@ -92,9 +89,8 @@ namespace AgentClient
                 while (_tcpClient != null && _tcpClient.Connected && _stream != null)
                 {
                     string? jsonReceived = await Packet.ReceiveJsonAsync(_stream);
-                    if (jsonReceived == null) break; // Server ngắt kết nối
+                    if (jsonReceived == null) break;
 
-                    // Cập nhật lên giao diện HTML an toàn 
                     if (!this.IsDisposed)
                     {
                         this.Invoke(new Action(() =>
@@ -106,7 +102,6 @@ namespace AgentClient
             }
             catch
             {
-                // Khi mất kết nối đột ngột
             }
             finally
             {
@@ -121,7 +116,6 @@ namespace AgentClient
             }
         }
 
-        // Báo trạng thái kết nối TCP lên giao diện HTML
         private void SendServerStatusToUi(bool isConnected)
         {
             if (_webView.CoreWebView2 != null)
@@ -131,7 +125,6 @@ namespace AgentClient
             }
         }
 
-        // Đảm bảo đóng Socket sạch sẽ khi tắt cửa sổ WinForms
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             try

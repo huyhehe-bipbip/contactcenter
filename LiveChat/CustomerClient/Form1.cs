@@ -31,7 +31,6 @@ namespace CustomerClient
 
             await _webView.EnsureCoreWebView2Async(null);
 
-            // Nhận gói tin JSON từ giao diện HTML gửi xuống C#
             _webView.CoreWebView2.WebMessageReceived += async (sender, args) =>
             {
                 string jsonFromUi = args.TryGetWebMessageAsString();
